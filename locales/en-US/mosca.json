@@ -1,0 +1,20 @@
+{
+  "main": {
+    "label": {
+      "name": "Name",
+      "port": "Port",
+      "backend": "Backend"
+    }
+  },
+  "backend": {
+    "label": {
+      "type": "Type",
+      "url": "URL",
+      "pubsubcollection": "PubSub Collection"
+    },
+    "type": {
+      "mongodb": "MongoDB",
+      "redis": "Redis"
+    }
+  }
+}

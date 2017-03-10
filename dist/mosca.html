@@ -1,0 +1,88 @@
+<script type="text/x-red" data-template-name="mosca">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="main.label.name"></span></label>
+    <input type="text" id="node-input-name" placeholder="Mosca MQTT broker">
+  </div>
+  <div class="form-row">
+    <label for="node-input-port"><i class="fa fa-globe"></i> <span data-i18n="main.label.port"></span></label>
+    <input type="text" id="node-input-port" placeholder="1883">
+  </div>
+  <div class="form-row">
+    <label for="node-input-backend"><i class="fa fa-database"></i> <span data-i18n="main.label.backend"></span></label>
+    <input type="text" id="node-input-backend">
+  </div>
+  <div class="form-tips"><b>Tip:</b> This is here to help.</div>
+</script>
+
+<script type="text/x-red" data-template-name="mosca-backend">
+  <div class="form-row">
+    <label for="node-config-input-backend_type"><i class="fa fa-tag"></i> <span data-i18n="backend.label.type"></span></label>
+    <select id="node-config-input-backend_type">
+      <option value="mongo" data-i18n="backend.type.mongodb"></option>
+    </select>
+  </div>
+  <div class="form-row backend-mongo-row">
+    <label for="node-config-input-backend_mongo_url"><i class="fa fa-globe"></i> <span data-i18n="backend.label.url"></span></label>
+    <input type="text" id="node-config-input-backend_mongo_url" placeholder="mongodb://localhost:27017/mqtt">
+  </div>
+  <div class="form-row backend-mongo-row">
+    <label for="node-config-input-backend_mongo_pubsub_collection"><i class="fa fa-file-o"></i> <span data-i18n="backend.label.pubsubcollection"></span></label>
+    <input type="text" id="node-config-input-backend_mongo_pubsub_collection" placeholder="Leave empty to use default">
+  </div>
+</script>
+
+<script type="text/javascript">
+  /* eslint-disable */
+  RED.nodes.registerType('mosca', {
+    category: 'service',
+    defaults: {
+      port: { value: 1883, validate: RED.validators.number() },
+      name: { value: '' },
+      backend: { type: 'mosca-backend', validate: moscaValidateBackend },
+    },
+    color: '#D8BFD8',
+    inputs: 1,
+    outputs: 1,
+    icon: 'mosca.png',
+    label: function() {
+      return this.name || 'Mosca MQTT broker';
+    },
+    labelStyle: function() {
+      return this.name ? '' : 'node_label_italic';
+    }
+  });
+
+  RED.nodes.registerType('mosca-backend', {
+    category: 'config',
+    defaults: {
+      backend_type: { value: 'mongo' },
+      backend_mongo_url: { value: '' },
+      backend_mongo_pubsub_collection: { value: '' },
+    },
+    inputs: 0,
+    outputs: 0,
+    label: function() {
+      if (this.backend_type === 'mongo') {
+        return 'MongoDB | ' + this.backend_mongo_url;
+      }
+      return '';
+    },
+    oneditprepare: function() {
+      $(".backend-mongo-row").hide();
+      $("#node-config-input-backend_type").change(function() {
+        if ( $("#node-config-input-backend_type").val() === 'mongo') {
+          $(".backend-mongo-row").show();
+        } else {
+          $(".backend-mongo-row").hide();
+        }
+      });
+    }
+  });
+
+  function moscaValidateBackend(v) {
+    const node = RED.nodes.node(v);
+    if (!node) return true;
+    if (node.backend_type === 'mongo' && !node.backend_mongo_url) return false;
+    return true;
+  }
+</script>
