@@ -11,38 +11,34 @@ module.exports = function(RED) { // eslint-disable-line
     const moscaConfig = { port: config.port };
     const backend = RED.nodes.getNode(config.backend);
     if (backend) {
-      if (backend.backendType === 'mongo') {
-        if (!backend.mongo) {
-          this.status({ fill: 'red', shape: 'ring', text: 'Invalid Configuration' });
+      if (backend.backendType === 'mongodb') {
+        if (!backend.mongodb) {
+          this.status({ fill: 'red', shape: 'ring', text: 'Invalid backend configuration' });
           return;
         }
 
         moscaConfig.backend = {
-          type: 'mongo',
-          url: backend.mongo.url,
-          pubsubCollection: backend.mongo.pubsubCollection,
+          type: 'mongodb',
+          url: backend.mongodb.url,
+          pubsubCollection: backend.mongodb.pubsubCollection,
         };
       }
     }
 
-    // if (config.persistence) {
-    //   switch (config.persistence.factory) {
-    //     case 'memory':
-    //       config.persistence.factory = mosca.persistence.Memory;
-    //       break;
-    //     case 'levelup':
-    //       config.persistence.factory = mosca.persistence.LevelUp;
-    //       break;
-    //     case 'redis':
-    //       config.persistence.factory = mosca.persistence.Redis;
-    //       break;
-    //     case 'mongodb':
-    //       config.persistence.factory = mosca.persistence.Mongo;
-    //       break;
-    //     default:
-    //       break;
-    //   }
-    // }
+    const persistence = RED.nodes.getNode(config.persistence);
+    if (persistence) {
+      if (persistence.factory === 'mongodb') {
+        if (!persistence.mongodb) {
+          this.status({ fill: 'red', shape: 'ring', text: 'Invalid persistence configuration' });
+          return;
+        }
+
+        moscaConfig.persistence = {
+          factory: mosca.persistence.Mongo,
+          url: persistence.mongodb.url,
+        };
+      }
+    }
 
     let server = new mosca.Server(moscaConfig);
     let clientCounter = 0;
@@ -115,12 +111,21 @@ module.exports = function(RED) { // eslint-disable-line
   function MoscaBackendNode(config) {
     RED.nodes.createNode(this, config);
     this.backendType = config.backend_type;
-    this.mongo = {
-      url: config.backend_mongo_url,
-      pubsubCollection: config.backend_mongo_pubsub_collection,
+    this.mongodb = {
+      url: config.backend_mongodb_url,
+      pubsubCollection: config.backend_mongodb_pubsub_collection,
     };
   }
 
-  RED.nodes.registerType('mosca-backend', MoscaBackendNode);
+  function MoscaPersistenceNode(config) {
+    RED.nodes.createNode(this, config);
+    this.factory = config.persistence_factory;
+    this.mongodb = {
+      url: config.persistence_mongodb_url,
+    };
+  }
+
   RED.nodes.registerType('mosca', MoscaNode);
+  RED.nodes.registerType('mosca-backend', MoscaBackendNode);
+  RED.nodes.registerType('mosca-persistence', MoscaPersistenceNode);
 };

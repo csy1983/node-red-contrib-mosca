@@ -3,7 +3,8 @@
     "label": {
       "name": "Name",
       "port": "Port",
-      "backend": "Backend"
+      "backend": "Backend",
+      "persistence": "Persistence"
     }
   },
   "backend": {
@@ -11,6 +12,16 @@
       "type": "Type",
       "url": "URL",
       "pubsubcollection": "PubSub Collection"
+    },
+    "type": {
+      "mongodb": "MongoDB",
+      "redis": "Redis"
+    }
+  },
+  "persistence": {
+    "label": {
+      "factory": "Factory",
+      "url": "URL"
     },
     "type": {
       "mongodb": "MongoDB",

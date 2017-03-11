@@ -11,6 +11,10 @@
     <label for="node-input-backend"><i class="fa fa-database"></i> <span data-i18n="main.label.backend"></span></label>
     <input type="text" id="node-input-backend">
   </div>
+  <div class="form-row">
+    <label for="node-input-persistence"><i class="fa fa-database"></i> <span data-i18n="main.label.persistence"></span></label>
+    <input type="text" id="node-input-persistence">
+  </div>
   <div class="form-tips"><b>Tip:</b> This is here to help.</div>
 </script>
 
@@ -18,16 +22,29 @@
   <div class="form-row">
     <label for="node-config-input-backend_type"><i class="fa fa-tag"></i> <span data-i18n="backend.label.type"></span></label>
     <select id="node-config-input-backend_type">
-      <option value="mongo" data-i18n="backend.type.mongodb"></option>
+      <option value="mongodb" data-i18n="backend.type.mongodb"></option>
     </select>
   </div>
-  <div class="form-row backend-mongo-row">
-    <label for="node-config-input-backend_mongo_url"><i class="fa fa-globe"></i> <span data-i18n="backend.label.url"></span></label>
-    <input type="text" id="node-config-input-backend_mongo_url" placeholder="mongodb://localhost:27017/mqtt">
+  <div class="form-row backend-mongodb-row">
+    <label for="node-config-input-backend_mongodb_url"><i class="fa fa-globe"></i> <span data-i18n="backend.label.url"></span></label>
+    <input type="text" id="node-config-input-backend_mongodb_url" placeholder="mongodb://localhost:27017/mqtt">
   </div>
-  <div class="form-row backend-mongo-row">
-    <label for="node-config-input-backend_mongo_pubsub_collection"><i class="fa fa-file-o"></i> <span data-i18n="backend.label.pubsubcollection"></span></label>
-    <input type="text" id="node-config-input-backend_mongo_pubsub_collection" placeholder="Leave empty to use default">
+  <div class="form-row backend-mongodb-row">
+    <label for="node-config-input-backend_mongodb_pubsub_collection"><i class="fa fa-file-o"></i> <span data-i18n="backend.label.pubsubcollection"></span></label>
+    <input type="text" id="node-config-input-backend_mongodb_pubsub_collection" placeholder="Leave empty to use default">
+  </div>
+</script>
+
+<script type="text/x-red" data-template-name="mosca-persistence">
+  <div class="form-row">
+    <label for="node-config-input-persistence_factory"><i class="fa fa-tag"></i> <span data-i18n="persistence.label.factory"></span></label>
+    <select id="node-config-input-persistence_factory">
+      <option value="mongodb" data-i18n="persistence.type.mongodb"></option>
+    </select>
+  </div>
+  <div class="form-row persistence-mongodb-row">
+    <label for="node-config-input-persistence_mongodb_url"><i class="fa fa-globe"></i> <span data-i18n="persistence.label.url"></span></label>
+    <input type="text" id="node-config-input-persistence_mongodb_url" placeholder="mongodb://localhost:27017/mqtt">
   </div>
 </script>
 
@@ -39,6 +56,7 @@
       port: { value: 1883, validate: RED.validators.number() },
       name: { value: '' },
       backend: { type: 'mosca-backend', validate: moscaValidateBackend },
+      persistence: { type: 'mosca-persistence', validate: moscaValidatePersistence },
     },
     color: '#D8BFD8',
     inputs: 1,
@@ -55,25 +73,51 @@
   RED.nodes.registerType('mosca-backend', {
     category: 'config',
     defaults: {
-      backend_type: { value: 'mongo' },
-      backend_mongo_url: { value: '' },
-      backend_mongo_pubsub_collection: { value: '' },
+      backend_type: { value: 'mongodb' },
+      backend_mongodb_url: { value: '' },
+      backend_mongodb_pubsub_collection: { value: '' },
     },
     inputs: 0,
     outputs: 0,
     label: function() {
-      if (this.backend_type === 'mongo') {
-        return 'MongoDB | ' + this.backend_mongo_url;
+      if (this.backend_type === 'mongodb') {
+        return 'MongoDB | ' + this.backend_mongodb_url;
       }
       return '';
     },
     oneditprepare: function() {
-      $(".backend-mongo-row").hide();
+      $(".backend-mongodb-row").hide();
       $("#node-config-input-backend_type").change(function() {
-        if ( $("#node-config-input-backend_type").val() === 'mongo') {
-          $(".backend-mongo-row").show();
+        if ( $("#node-config-input-backend_type").val() === 'mongodb') {
+          $(".backend-mongodb-row").show();
         } else {
-          $(".backend-mongo-row").hide();
+          $(".backend-mongodb-row").hide();
+        }
+      });
+    }
+  });
+
+  RED.nodes.registerType('mosca-persistence', {
+    category: 'config',
+    defaults: {
+      persistence_factory: { value: 'mongodb' },
+      persistence_mongodb_url: { value: '' },
+    },
+    inputs: 0,
+    outputs: 0,
+    label: function() {
+      if (this.persistence_factory === 'mongodb') {
+        return 'MongoDB | ' + this.persistence_mongodb_url;
+      }
+      return '';
+    },
+    oneditprepare: function() {
+      $(".persistence-mongodb-row").hide();
+      $("#node-config-input-persistence_factory").change(function() {
+        if ( $("#node-config-input-persistence_factory").val() === 'mongodb') {
+          $(".persistence-mongodb-row").show();
+        } else {
+          $(".persistence-mongodb-row").hide();
         }
       });
     }
@@ -82,7 +126,14 @@
   function moscaValidateBackend(v) {
     const node = RED.nodes.node(v);
     if (!node) return true;
-    if (node.backend_type === 'mongo' && !node.backend_mongo_url) return false;
+    if (node.backend_type === 'mongodb' && !node.backend_mongodb_url) return false;
+    return true;
+  }
+
+  function moscaValidatePersistence(v) {
+    const node = RED.nodes.node(v);
+    if (!node) return true;
+    if (node.persistence_factory === 'mongodb' && !node.persistence_mongodb_url) return false;
     return true;
   }
 </script>
